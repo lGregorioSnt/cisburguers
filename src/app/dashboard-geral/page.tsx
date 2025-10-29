@@ -1,4 +1,3 @@
-// ARQUIVO ATUALIZADO: /src/app/carlos/dashboard/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -19,8 +18,10 @@ import {
 } from "@mui/icons-material";
 import { keyframes } from '@mui/system';
 
-// --- Importando o estado global ---
-import { globalRupturaState } from '../estadoGlobal';
+// --- Importando o estado global E A INTERFACE ---
+// Assumindo que a interface RupturaData foi definida e exportada em '../estadoGlobal' ou em outro arquivo.
+// Estou usando o nome RupturaData que você definiu no estado global (globalState.ts)
+import { globalRupturaState, RupturaData } from '../estadoGlobal';
 
 
 // --- Constantes de Design ---
@@ -30,6 +31,7 @@ const DANGER_COLOR = "#D32F2F";
 const SUCCESS_COLOR = "#388E3C";
 const NAV_BACKGROUND_COLOR = "#FF9800"; 
 
+// Corrigido para usar 'as const' para tipagem absoluta no TypeScript
 const modalStyle = { position: "absolute" as const, top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: { xs: '90%', sm: 700 }, bgcolor: "background.paper", borderRadius: "16px", boxShadow: 24, p: 4, outline: 'none' };
 
 const blink = keyframes`
@@ -59,7 +61,8 @@ const KpiCard = ({ title, value, icon, color, subValue }: { title: string, value
   </Paper>
 );
 
-const AlertaSidebar = ({ ruptura, handleOpenActionModal }: { ruptura: any, handleOpenActionModal: (r: any) => void }) => (
+// CORRIGIDO: Tipagem e contraste do texto de detalhe
+const AlertaSidebar = ({ ruptura, handleOpenActionModal }: { ruptura: RupturaData, handleOpenActionModal: (r: RupturaData | null) => void }) => (
   <Paper 
       elevation={10} 
       sx={{ 
@@ -69,20 +72,21 @@ const AlertaSidebar = ({ ruptura, handleOpenActionModal }: { ruptura: any, handl
           width: 300, 
           p: 2, 
           backgroundColor: DANGER_COLOR, 
-          color: SECONDARY_COLOR, 
+          color: 'white', // Mantém o título do alerta e ícone brancos para destaque
           borderRadius: '12px',
           zIndex: 20,
           animation: `${blink} 1.5s infinite`,
       }}
   >
-      <Typography variant="h6"  fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+      <Typography variant="h6"  fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <Warning sx={{ mr: 1 }} /> ALERTA CRÍTICO
       </Typography>
       <Divider sx={{ backgroundColor: 'white', mb: 1 }} />
-      <Typography variant="body2">
+      {/* Detalhes do alerta agora estão em preto (SECONDARY_COLOR) para melhor contraste */}
+      <Typography variant="body2" sx={{ color: SECONDARY_COLOR }}>
           **Pedido #{ruptura.pedido_id}**
       </Typography>
-      <Typography variant="body2" sx={{ mb: 1 }}>
+      <Typography variant="body2" sx={{ mb: 1, color: SECONDARY_COLOR }}>
           **Falta:** {ruptura.item_nome}
       </Typography>
       <Button 
@@ -101,11 +105,14 @@ const AlertaSidebar = ({ ruptura, handleOpenActionModal }: { ruptura: any, handl
 export default function CarlosDashboard() {
   const [orders, setOrders] = useState(initialOrders);
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const [rupturaAlert, setRupturaAlert] = useState<any>(null); 
+  // CORRIGIDO: Aplicando a tipagem RupturaData
+  const [rupturaAlert, setRupturaAlert] = useState<RupturaData | null>(null); 
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [selectedRupture, setSelectedRupture] = useState<any>(null);
+  // CORRIGIDO: Aplicando a tipagem RupturaData
+  const [selectedRupture, setSelectedRupture] = useState<RupturaData | null>(null);
 
-  const handleOpenActionModal = (ruptura: any) => {
+  // CORRIGIDO: Aplicando a tipagem RupturaData
+  const handleOpenActionModal = (ruptura: RupturaData | null) => {
     setSelectedRupture(ruptura);
     setIsActionModalOpen(true);
     setRupturaAlert(null); 
@@ -117,6 +124,9 @@ export default function CarlosDashboard() {
   };
 
   const handleResolveRupture = (action: string) => {
+    // Verificação de segurança, pois selectedRupture pode ser null
+    if (!selectedRupture) return; 
+
     setOrders(prev => prev.map(order => order.id === selectedRupture.pedido_id ? { ...order, risco: 'baixo', status: 'Reabastecendo', local: 'Ações Gerenciais' } : order));
     
     // Reseta o estado global (notifica o funcionário)
@@ -135,17 +145,21 @@ export default function CarlosDashboard() {
     const checkGlobalRupture = () => {
         // Lê o estado global importado
         if (globalRupturaState.isRupturaActive && globalRupturaState.rupturaData && !rupturaAlert && !isActionModalOpen) {
-            setRupturaAlert(globalRupturaState.rupturaData);
+            
+            // Garantindo que a tipagem do RupturaData está correta
+            const currentRupturaData = globalRupturaState.rupturaData as RupturaData;
+
+            setRupturaAlert(currentRupturaData);
             
             setOrders(prev => {
-                if (prev.find(o => o.id === globalRupturaState.rupturaData.pedido_id)) {
-                    return prev.map(order => order.id === globalRupturaState.rupturaData.pedido_id ? { ...order, risco: 'alto', status: 'Em RUPTURA' } : order);
+                if (prev.find(o => o.id === currentRupturaData.pedido_id)) {
+                    return prev.map(order => order.id === currentRupturaData.pedido_id ? { ...order, risco: 'alto', status: 'Em RUPTURA' } : order);
                 }
                 return [{ 
-                    id: globalRupturaState.rupturaData.pedido_id, 
+                    id: currentRupturaData.pedido_id, 
                     cliente: 'App Delivery', 
                     status: 'Em RUPTURA', 
-                    local: globalRupturaState.rupturaData.local_reportado, 
+                    local: currentRupturaData.local_reportado, 
                     tempo_inicio: new Date().toLocaleTimeString().substring(0, 5), 
                     risco: 'alto' 
                 }, ...prev];
@@ -181,10 +195,10 @@ export default function CarlosDashboard() {
       >
         <List sx={{ p: 1, mt: 8 }}>
             {[
-          { text: "Gerência", href: "/dashboard-geral", icon: <DashboardIcon /> },
-                                                      { text: "Funcionários", href: "../funcativos", icon: <People /> },
-                                                      { text: "Histórico", href: "../hist", icon: <History /> }, // <- LINK ATUALIZADO
-                                                      { text: "Estoque", href: "../estoque", icon: <Inventory /> }   // <- LINK NOVO
+            { text: "Gerência", href: "/dashboard-geral", icon: <DashboardIcon /> },
+            { text: "Funcionários", href: "../funcativos", icon: <People /> },
+            { text: "Histórico", href: "../hist", icon: <History /> }, // <- LINK ATUALIZADO
+            { text: "Estoque", href: "../estoque", icon: <Inventory /> }   // <- LINK NOVO
             ].map((item) => (
             <ListItem key={item.text} disablePadding sx={{ display: "block", textDecoration: 'none', color: 'inherit' }}>
                 <ListItemButton 
@@ -250,7 +264,7 @@ export default function CarlosDashboard() {
                         animation: order.risco === 'alto' ? `${blink} 2s infinite` : 'none',
                         '&:hover': { backgroundColor: order.risco === 'alto' ? 'rgba(255, 152, 0, 0.2)' : '#f9f9f9' }
                     }}
-                    onClick={() => order.risco === 'alto' && handleOpenActionModal(globalRupturaState.rupturaData)} // Puxa os dados do global
+                    onClick={() => order.risco === 'alto' && globalRupturaState.rupturaData && handleOpenActionModal(globalRupturaState.rupturaData)} // Puxa os dados do global
                 >
                     <Box sx={{ width: '10%', fontWeight: 'bold', color: order.risco === 'alto' ? DANGER_COLOR : SECONDARY_COLOR }}>{order.id}</Box>
                     <Box sx={{ width: '25%' }}>{order.cliente}</Box>
@@ -258,7 +272,7 @@ export default function CarlosDashboard() {
                     <Box sx={{ width: '20%' }}>{order.local}</Box>
                     <Box sx={{ width: '20%' }}>
                         {order.risco === 'alto' ? 
-                            <Button size="small" variant="contained" sx={{ backgroundColor: PRIMARY_COLOR }} onClick={(e) => { e.stopPropagation(); handleOpenActionModal(globalRupturaState.rupturaData); }}>
+                            <Button size="small" variant="contained" sx={{ backgroundColor: PRIMARY_COLOR }} onClick={(e) => { e.stopPropagation(); globalRupturaState.rupturaData && handleOpenActionModal(globalRupturaState.rupturaData); }}>
                                 TRATAR
                             </Button> 
                             : 'OK'
