@@ -1,25 +1,59 @@
-// ARQUIVO ATUALIZADO: /src/app/funcionario/dashboard/page.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+// Removido Link de 'next/link' devido a erro de compilação
 import { 
-    Box, Paper, Typography, Button, TextField, Snackbar, Alert, Modal, Divider
+    Box, Paper, Typography, Button, TextField, Snackbar, Alert, Modal, 
+    // Removido Divider, pois está importado mas não usado
 } from '@mui/material';
 import { Warning, Fastfood, Timer, Kitchen, Handshake } from '@mui/icons-material';
 
-// --- Importando o estado global ---
-import { globalRupturaState, initialRupturaData } from '../estadoGlobal';
+// --- DEFINIÇÕES DE ESTADO GLOBAL E TIPAGEM (MOVIMENTADAS PARA CÁ) ---
 
-// --- Constantes de Design (Corrigido) ---
+// Interface dos dados de Ruptura (necessária para tipagem)
+interface RupturaData {
+    pedido_id: number;
+    item_sku: string;
+    item_nome: string;
+    quantidade: number;
+    local_reportado: string;
+    funcionario: string;
+    horario: string;
+    alternativa_estoque: string;
+    historico_item: string;
+}
+
+// Dados iniciais (Base para o payload de alerta)
+export const initialRupturaData: RupturaData = {
+    pedido_id: 2054,
+    item_sku: 'CARNE-P-180',
+    item_nome: 'Blend de Carne 180g',
+    quantidade: 1,
+    local_reportado: 'Estação de Montagem 2',
+    funcionario: 'Marcos A.',
+    horario: new Date().toLocaleTimeString('pt-BR'),
+    alternativa_estoque: 'Verificar Geladeira 3 ou usar blend 120g.',
+    historico_item: 'Falta recorrente nos últimos 2 dias.',
+};
+
+// Objeto globalRupturaState simulado para este arquivo
+export const globalRupturaState: {
+    isRupturaActive: boolean;
+    rupturaData: RupturaData | null;
+} = {
+    isRupturaActive: false,
+    rupturaData: null,
+};
+// --- FIM DAS DEFINIÇÕES DE ESTADO GLOBAL ---
+
+// --- Constantes de Design ---
 const PRIMARY_COLOR = "#FF9800"; // Laranja (Ação)
 const DANGER_COLOR = "#D32F2F"; // Vermelho (Alerta)
 const SUCCESS_COLOR = "#388E3C"; // Verde (Meta)
 const TEXT_COLOR_PRIMARY = "#212121"; // Preto para textos (Variável Renomeada)
 
-const modalStyle = { position: "absolute" as "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: { xs: '90%', sm: 500 }, bgcolor: "background.paper", borderRadius: "16px", boxShadow: 24, p: 4, outline: 'none' };
-
-// --- SIMULAÇÃO (Removida daqui, agora é importada) ---
+// CORRIGIDO: de as "absolute" para as const para resolver o erro de tipagem.
+const modalStyle = { position: "absolute" as const, top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: { xs: '90%', sm: 500 }, bgcolor: "background.paper", borderRadius: "16px", boxShadow: 24, p: 4, outline: 'none' };
 
 // Dados Mockados para o Funcionário
 const funcionarioTasks = [
@@ -48,6 +82,7 @@ export default function FuncionarioDashboard() {
         item: 'Blend de Carne 180g',
         local: 'Estação de Montagem 2'
     });
+    // Tipagem explícita para o Snackbar
     const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
     const [isLoading, setIsLoading] = useState(false);
     const [isRupturaActiveGlobally, setIsRupturaActiveGlobally] = useState(globalRupturaState.isRupturaActive);
@@ -73,8 +108,8 @@ export default function FuncionarioDashboard() {
         }
         setIsLoading(true);
 
-        // Prepara os dados para enviar ao estado global
-        const payload = {
+        // Prepara os dados para enviar ao estado global (usando a interface RupturaData)
+        const payload: RupturaData = {
             ...initialRupturaData, // Pega os dados base do arquivo global
             pedido_id: parseInt(formData.pedido),
             item_nome: formData.item,
@@ -123,11 +158,12 @@ export default function FuncionarioDashboard() {
                     Estação de Montagem - Marcos A.
                 </Typography>
                  <Button 
-                    component={Link}
+                    // Removido component={Link} e import Link, para evitar erro de compilação
+                    component="a"
                     href="../dashboard-geral"
                     variant="outlined"
                     startIcon={<Handshake />}
-                    sx={{ color: TEXT_COLOR_PRIMARY, borderColor: TEXT_COLOR_PRIMARY }} // Corrigido
+                    sx={{ color: TEXT_COLOR_PRIMARY, borderColor: TEXT_COLOR_PRIMARY }}
                 >
                     Acesso Gerência
                 </Button>
@@ -147,7 +183,7 @@ export default function FuncionarioDashboard() {
             {/* Lista de Tarefas (Simulação de Tabela usando Box/Paper) */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {/* Cabeçalho */}
-                <Box  color={TEXT_COLOR_PRIMARY} sx={{ display: 'flex', fontWeight: 'bold', backgroundColor: '#e0e0e0', p: 1.5, borderRadius: '8px 8px 0 0' }}>
+                <Box  color={TEXT_COLOR_PRIMARY} sx={{ display: 'flex', fontWeight: 'bold', backgroundColor: '#e0e0e0', p: 1.5, borderRadius: '8px 8px 0 0' }}>
                     <Box sx={{ width: '15%', minWidth: 60 }}>ID</Box>
                     <Box sx={{ width: '35%' }}>Cliente</Box>
                     <Box sx={{ width: '20%' }}>Status</Box>
