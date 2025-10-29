@@ -1,4 +1,3 @@
-// ARQUIVO NOVO: /src/app/simulacao/globalState.ts
 // Este é o nosso "servidor" falso.
 // Ambas as páginas vão importar este mesmo objeto.
 
