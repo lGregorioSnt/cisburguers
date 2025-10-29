@@ -21,7 +21,7 @@ import { keyframes } from '@mui/system';
 // --- Importando o estado global E A INTERFACE ---
 // Assumindo que a interface RupturaData foi definida e exportada em '../estadoGlobal' ou em outro arquivo.
 // Estou usando o nome RupturaData que você definiu no estado global (globalState.ts)
-import { globalRupturaState, RupturaData } from '../estadoGlobal';
+import { globalRupturaState, RupturaData } from '../app/estadoGlobal';
 
 
 // --- Constantes de Design ---
