@@ -16,7 +16,7 @@ export const initialRupturaData = {
 };
 
 // O estado que será compartilhado
-export let globalRupturaState = {
+export const globalRupturaState = {
     isRupturaActive: false,
     rupturaData: null as any
 };

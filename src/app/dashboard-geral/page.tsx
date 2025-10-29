@@ -30,7 +30,7 @@ const DANGER_COLOR = "#D32F2F";
 const SUCCESS_COLOR = "#388E3C";
 const NAV_BACKGROUND_COLOR = "#FF9800"; 
 
-const modalStyle = { position: "absolute" as "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: { xs: '90%', sm: 700 }, bgcolor: "background.paper", borderRadius: "16px", boxShadow: 24, p: 4, outline: 'none' };
+const modalStyle = { position: "absolute" as const, top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: { xs: '90%', sm: 700 }, bgcolor: "background.paper", borderRadius: "16px", boxShadow: 24, p: 4, outline: 'none' };
 
 const blink = keyframes`
   0% { background-color: rgba(211, 47, 47, 0.1); }
